@@ -524,7 +524,8 @@ public class Emitter implements Visitor {
     //TBD: here you need to allocate a new local variable index to the
     //     formal parameter.
     //     Relevant: x.index, frame.getNewLocalVarIndex();
-
+    // x.index = frame.getNewLocalVarIndex();
+    // System.out.println("aaaaa-> " + x.index);
   }
 
   public void visit(FormalParamDeclSequence x) {
@@ -563,7 +564,19 @@ public class Emitter implements Visitor {
       //                         emitISTORE()
       //                         emitFSTORE()
       //
-
+      if(D.isGlobal()) {
+        emitStaticVariableReference(V.Ident, typeOfDecl(V.Ident.declAST), true);
+      } else {
+        D.index = frame.getNewLocalVarIndex();
+        if(T.Tequal(StdEnvironment.intType)
+            || T.Tequal(StdEnvironment.boolType)) {
+          emitISTORE(D.index);
+        } else if (T.Tequal(StdEnvironment.floatType)) {
+          emitFSTORE(D.index);
+        } else {
+          assert(false);
+        }
+      } 
     } else {
       assert(false); // Arrays not implemented.
     }
@@ -688,7 +701,18 @@ public class Emitter implements Visitor {
     Decl D = (Decl) x.Ident.declAST;
     Type T = typeOfDecl (D);
     //TBD: your code goes here...
-
+    if(D.isGlobal()) {
+      emitStaticVariableReference(x.Ident, typeOfDecl(x.Ident.declAST), true);
+    } else {
+      if(T.Tequal(StdEnvironment.intType)
+          || T.Tequal(StdEnvironment.boolType)) {
+        emitILOAD(D.index);
+      } else if (T.Tequal(StdEnvironment.floatType)) {
+        emitFLOAD(D.index);
+      } else {
+        assert(false);
+      }
+    } 
   }
 
   public void visit(AssignExpr x) {
@@ -785,7 +809,9 @@ public class Emitter implements Visitor {
     //              iconst_0
     //           Label2:
     //TBD:
-
+    if(Op.equals("i2f")){
+      emit(JVM.I2F);
+    }
   }
 
   public void visit(EmptyExpr x) {
@@ -849,7 +875,7 @@ public class Emitter implements Visitor {
     //emit("; IntLiteral: " + x.Lexeme + "\n");
     //TBD: here you have to emit an ICONST instruction to load the integer literal
     //     onto the JVM stack. (see emitICONST).
-
+  emitICONST(Integer.valueOf( x.Lexeme));
   } 
 
   public void visit(FloatLiteral x) {

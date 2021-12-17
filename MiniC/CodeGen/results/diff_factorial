@@ -1,0 +1,4 @@
+--- /home/user/Desktop/CSI4104_Assignment_5/MiniC/CodeGen/tst/base/solutions/factorial.txt	2021-12-14 16:53:06.000000000 +0900
++++ /home/user/Desktop/CSI4104_Assignment_5/MiniC/CodeGen/results/res_factorial	2021-12-17 18:53:25.018468792 +0900
+@@ -1 +0,0 @@
+-120
