@@ -591,7 +591,10 @@ public class Emitter implements Visitor {
     int L1 = frame.getNewLabel();
     int L2 = frame.getNewLabel();
     //TBD: your code goes here...
-    String Op = new String(((BinaryExpr)(x.eAST)).oAST.Lexeme);
+    String Op = new String();
+    if(x.eAST instanceof BinaryExpr){
+      Op = new String(((BinaryExpr)(x.eAST)).oAST.Lexeme);
+    }
     if(    Op.equals(">")    ){
       emit(JVM.IF_ICMPGT + " " + getLabelString(L1));
     }
@@ -620,7 +623,10 @@ public class Emitter implements Visitor {
     int L3 = frame.getNewLabel();
     int L4 = frame.getNewLabel();
     emit(JVM.IFEQ + " " + getLabelString(L3));
-    x.thenAST.accept(this);
+    System.out.println("asdadasdasdadasdasdasdadaasd");
+    if(x.thenAST != null){
+      x.thenAST.accept(this);
+    }
     emit(JVM.GOTO + " " + getLabelString(L4));
     
     //TBD: your code goes here...
@@ -692,6 +698,49 @@ public class Emitter implements Visitor {
     // is done there.  Using the classfileanalyzer is described in the
     // Assignment 5 spec.
     // TBD:
+    int L1 = frame.getNewLabel();
+    int L2 = frame.getNewLabel();
+    int L3 = frame.getNewLabel();
+    int L4 = frame.getNewLabel();
+    x.e1AST.accept(this);
+    emitLabel(L1);
+    x.e2AST.accept(this);
+    String Op = new String();
+    if(x.e2AST instanceof BinaryExpr){
+      Op = new String(((BinaryExpr)(x.e2AST)).oAST.Lexeme);
+    }
+    if(    Op.equals(">")    ){
+      emit(JVM.IF_ICMPGT + " " + getLabelString(L3));
+    }
+    else if(    Op.equals(">=")    ){
+      emit(JVM.IF_ICMPGE+ " " + getLabelString(L3));
+    }
+    else if(    Op.equals("<")    ){
+      emit(JVM.IF_ICMPLT + " " + getLabelString(L3));
+    }
+    else if(    Op.equals("<=")    ){
+      emit(JVM.IF_ICMPLE + " " + getLabelString(L3));
+    }
+    else if(    Op.equals("==")    ){
+      emit(JVM.IF_ICMPEQ + " " + getLabelString(L3));
+    }
+    else if(    "!=".equals(Op)    ){
+      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
+      emit(JVM.IF_ICMPNE + " " + getLabelString(L3));
+    }
+    emitICONST(0);
+    emit(JVM.GOTO + " " + getLabelString(L4));
+    emitLabel(L3);
+    emitICONST(1);
+
+    emitLabel(L4);
+    emit(JVM.IFEQ + " " + getLabelString(L2));
+    x.stmtAST.accept(this);
+    x.e3AST.accept(this);
+    emit(JVM.GOTO + " " + getLabelString(L1));
+    emitLabel(L2);
+
+
 
   }
 
@@ -851,14 +900,32 @@ public class Emitter implements Visitor {
       int L2 = frame.getNewLabel();
       //TBD: implement the code template for && short circuit evaluation
       //     from the lecture slides.
-      emitLabel(L1);
-      return;
+      x.lAST.accept(this);
+      if(x.lAST instanceof BoolExpr){
+        if(((BoolExpr)(x.lAST)).astBL.Lexeme.equals("false")){
+          return;
+        }
+        else{
+          x.rAST.accept(this);
+        }
+      }
     }
     if(Op.equals("||")) {
       //TBD: implement || short circuit evaluation.
       //     Similar to &&, you may use a Java example to figure it out..
-
-      return;
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      //TBD: implement the code template for && short circuit evaluation
+      //     from the lecture slides.
+      x.lAST.accept(this);
+      if(x.lAST instanceof BoolExpr){
+        if(((BoolExpr)(x.lAST)).astBL.Lexeme.equals("true")){
+          return;
+        }
+        else{
+          x.rAST.accept(this);
+        }
+      }
     }
     /*
      * Here we treat +, -, *, / >, >=, <, <=, ==, !=
@@ -880,108 +947,19 @@ public class Emitter implements Visitor {
     else if(Op.equals("-") && (x.oAST.type.Tequal(StdEnvironment.floatType))){
       emit(JVM.FSUB);
     }
-    // else if(Op.equals(">") || Op.equals(">=") || Op.equals("<") || Op.equals("<=") || Op.equals("==") || Op.equals("!=")){
-    //   if(Op.equals(">")){
-    //     emit(JVM.IF_ICMPGT + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-    //   else if(Op.equals(">=")){
-    //     emit(JVM.IF_ICMPGE + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-    //   else if(Op.equals("<")){
-    //     emit(JVM.IF_ICMPLT + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-    //   else if(Op.equals("<=")){
-    //     emit(JVM.IF_ICMPLE + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-    //   else if(Op.equals("==")){
-    //     emit(JVM.IF_ICMPEQ + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-    //   else if(Op.equals("!=")){
-    //     emit(JVM.IF_ICMPNE + " " + getLabelString(L1)); 
-    //     emitICONST(0);
-    //   }
-      
-    //   // emit(JVM.IF_ICMPGT + " Label" + LabelIndent);
-    //   // VarExpr V1;
-    //   // Decl D1; 
-    //   // Type T1;
-    //   // VarExpr V2;
-    //   // Decl D2; 
-    //   // Type T2;
-    //   // int e1;
-    //   // int e2;
-    //   // if(x.lAST instanceof VarExpr){
-    //   //   V1 = (VarExpr) x.lAST;
-    //   //   D1 = (Decl) V1.Ident.declAST; 
-    //   //   T1 = typeOfDecl(D1);
-    //   //   e1 = D1.index;
-    //   // }
-    //   // else{
-    //   //   e1 = ((IntExpr)(x.lAST)).GetValue();
-    //   // }
-    //   // if(x.rAST instanceof VarExpr){
-    //   //   V2 = (VarExpr) x.rAST;
-    //   //   D2 = (Decl) V2.Ident.declAST; 
-    //   //   T2 = typeOfDecl(D2);
-    //   //   e2 = D2.index;
-    //   // }
-    //   // else{
-    //   //   e2 = ((IntExpr)(x.rAST)).GetValue();
-    //   // }
-    //   // if(Op.equals(">")){
-    //   //   if(e1 > e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    //   // else if(Op.equals(">=")){
-    //   //   if(e1 >= e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    //   // else if(Op.equals("<")){
-    //   //   if(e1 < e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    //   // else if(Op.equals("<=")){
-    //   //   if(e1 <= e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    //   // else if(Op.equals("==")){
-    //   //   if(e1 == e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    //   // else if(Op.equals("!=")){
-    //   //   if(e1 != e2){
-    //   //     emitICONST(1);
-    //   //   }
-    //   //   else{
-    //   //     emitICONST(0);
-    //   //   }
-    //   // }
-    // }
+    else if(Op.equals("*") && (x.oAST.type.Tequal(StdEnvironment.intType))){
+      emit(JVM.IMUL);
+    }
+    else if(Op.equals("*") && (x.oAST.type.Tequal(StdEnvironment.floatType))){
+      emit(JVM.FMUL);
+    }
+    else if(Op.equals("/") && (x.oAST.type.Tequal(StdEnvironment.intType))){
+      emit(JVM.IDIV);
+    }
+    else if(Op.equals("/") && (x.oAST.type.Tequal(StdEnvironment.floatType))){
+      emit(JVM.FDIV);
+    }
+    
     
   }
 
@@ -1083,6 +1061,7 @@ public class Emitter implements Visitor {
   public void visit(BoolLiteral x) {
     //emit("; BoolLiteral: " + x.Lexeme + "\n");
     //TBD: and bool...
+    System.out.println("nnnnnnnnnnnnnnnnnn");
     emitBCONST(Boolean.parseBoolean(x.Lexeme));
 
   } 

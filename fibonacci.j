@@ -89,6 +89,54 @@
    invokespecial fibonacci/<init>()V
    astore_1
    ; ForStmt, line 20
+   ; AssignExpr
+   iconst_0
+   istore_2
+  Label2:
+   iload_2
+   bipush 20
+   if_icmple Label4
+   iconst_0
+   goto Label5
+  Label4:
+   iconst_1
+  Label5:
+   ifeq Label3
+   ; CallStmt, line 21
+   ; CallExpr
+   ; ActualParam
+   ldc "Fibonacci number "
+   invokestatic lang/System/putString(Ljava/lang/String;)V
+   ; CallStmt, line 22
+   ; CallExpr
+   ; ActualParam
+   iload_2
+   invokestatic lang/System/putInt(I)V
+   ; CallStmt, line 23
+   ; CallExpr
+   ; ActualParam
+   ldc ": "
+   invokestatic lang/System/putString(Ljava/lang/String;)V
+   ; CallStmt, line 24
+   ; CallExpr
+   ; ActualParam
+   ; CallExpr
+   ; "this"-pointer is the first ActualParam with instance methods:
+   aload_1
+   ; ActualParam
+   iload_2
+   invokevirtual fibonacci/fibonacci(I)I
+   invokestatic lang/System/putInt(I)V
+   ; CallStmt, line 25
+   ; CallExpr
+   invokestatic lang/System/putLn()V
+   ; AssignExpr
+   iload_2
+   iconst_1
+   iadd
+   istore_2
+   goto Label2
+  Label3:
   Label1:
    return
    .limit locals 3

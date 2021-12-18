@@ -471,7 +471,7 @@ public class SemanticAnalysis implements Visitor {
     // look at "for" loops, which use a similar check for the loop condition.
 
     /* Start of your code: */
-    if(!x.eAST.type.Tequal(StdEnvironment.boolType)){
+    if(!x.eAST.type.Tequal(StdEnvironment.boolType) && !x.eAST.type.Tequal(StdEnvironment.intType)){
       reporter.reportError(errMsg[20], "", x.eAST.pos);
       return;
     }

@@ -1,13 +1,13 @@
 Codge Generation Test Report
-generated Fri Dec 17 18:53:23 KST 2021
+generated Sat Dec 18 23:32:16 KST 2021
 Assignment succeded
-Coercion failed
-euclid failed
-factorial failed
-fibonacci failed
-FunctionCall failed
+Coercion succeded
+euclid succeded
+factorial succeded
+fibonacci succeded
+FunctionCall succeded
 HelloWorld succeded
-If failed
+If succeded
 Intliteral succeded
-Literals failed
+Literals succeded
 Shortcircuit failed
