@@ -24,11 +24,28 @@
 .method public gcd(II)I
   Label0:
    ; WhileStmt, line 6
+  Label2:
+   iload_2
+   iconst_0
+   if_icmpne Label4
+   ; IfStmt, line 11
+   iload_1
+   iload_2
+  Label5:
+   ; AssignStmt, line 8
+   iload_1
+   iload_2
+   istore_1
+  Label6:
+   ; AssignStmt, line 10
+   iload_2
+   iload_1
+   istore_2
    ; ReturnStmt, line 13
-   iload -1
+   iload_1
    ireturn
   Label1:
-   .limit locals 1
+   .limit locals 3
    .limit stack 150
 .end method
 
@@ -46,6 +63,7 @@
    bipush 22
    ; ActualParam
    bipush 12
+   invokevirtual euclid/gcd(II)I
    istore_2
    ; CallStmt, line 20
    ; CallExpr
