@@ -607,7 +607,8 @@ public class Emitter implements Visitor {
     else if(    Op.equals("==")    ){
       emit(JVM.IF_ICMPEQ + " " + getLabelString(L1));
     }
-    else if(    Op.equals("!=")    ){
+    else if(    "!=".equals(Op)    ){
+      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
       emit(JVM.IF_ICMPNE + " " + getLabelString(L1));
     }
     emitICONST(0);
@@ -642,9 +643,45 @@ public class Emitter implements Visitor {
     int L1 = frame.getNewLabel();
     emitLabel(L1);
     x.eAST.accept(this);
+    
+    int L2 = frame.getNewLabel();
+    int L3 = frame.getNewLabel();
+    int L4 = frame.getNewLabel();
+    String Op = new String(((BinaryExpr)(x.eAST)).oAST.Lexeme);
+    if(    Op.equals(">")    ){
+      emit(JVM.IF_ICMPGT + " " + getLabelString(L3));
+    }
+    else if(    Op.equals(">=")    ){
+      emit(JVM.IF_ICMPGE+ " " + getLabelString(L3));
+    }
+    else if(    Op.equals("<")    ){
+      emit(JVM.IF_ICMPLT + " " + getLabelString(L3));
+    }
+    else if(    Op.equals("<=")    ){
+      emit(JVM.IF_ICMPLE + " " + getLabelString(L3));
+    }
+    else if(    Op.equals("==")    ){
+      emit(JVM.IF_ICMPEQ + " " + getLabelString(L3));
+    }
+    else if(    "!=".equals(Op)    ){
+      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
+      emit(JVM.IF_ICMPNE + " " + getLabelString(L3));
+    }
+    emitICONST(0);
+    emit(JVM.GOTO + " " + getLabelString(L4));
+    
+    emitLabel(L3);
+    emitICONST(1);
+
+    emitLabel(L4);
+    emit(JVM.IFEQ + " " + getLabelString(L2));
+    
+
     if(x.stmtAST != null){
       x.stmtAST.accept(this);
+      emit(JVM.GOTO + " " + getLabelString(L1));
     }
+    emitLabel(L2);
 
   }
 

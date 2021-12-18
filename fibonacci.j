@@ -26,19 +26,33 @@
    ; IfStmt, line 14
    iload_1
    iconst_0
+   if_icmpeq Label2
+   iconst_0
+   goto Label3
   Label2:
+   iconst_1
+  Label3:
+   ifeq Label4
    ; AssignStmt, line 10
    iconst_0
    istore_2
-  Label3:
+   goto Label5
+  Label4:
    ; IfStmt, line 14
    iload_1
    iconst_1
-  Label4:
+   if_icmpeq Label6
+   iconst_0
+   goto Label7
+  Label6:
+   iconst_1
+  Label7:
+   ifeq Label8
    ; AssignStmt, line 12
    iconst_1
    istore_2
-  Label5:
+   goto Label9
+  Label8:
    ; AssignStmt, line 14
    ; CallExpr
    ; "this"-pointer is the first ActualParam with instance methods:
@@ -58,6 +72,8 @@
    invokevirtual fibonacci/fibonacci(I)I
    iadd
    istore_2
+  Label9:
+  Label5:
    ; ReturnStmt, line 15
    iload_2
    ireturn
