@@ -11,9 +11,7 @@ public class SemanticAnalysis implements Visitor {
   private ScopeStack scopeStack;
   private boolean IsFunctionBlock;
   private Type currentFunctionReturnType;
-  
-  private int arrayLenght = 1;
-  
+
   public SemanticAnalysis(ErrorReporter reporter) {
     this.reporter = reporter;
     this.scopeStack = new ScopeStack ();
@@ -34,7 +32,7 @@ public class SemanticAnalysis implements Visitor {
     scopeStack.enter ("putLn", StdEnvironment.putLn);
   }
 
-  
+  /*
   //
   // Prints the name of a class,
   // usefull for debugging...
@@ -43,7 +41,7 @@ public class SemanticAnalysis implements Visitor {
   System.out.println("The class of " + t +
   " is " + t.getClass().getName());
   }
-  
+   */
 
   // For FunDecl, VarDecl and FormalParamDecl, this function returns
   // the type of the declaration.
@@ -216,6 +214,19 @@ public class SemanticAnalysis implements Visitor {
     assert (((ActualParamSequence) P).lAST instanceof ActualParam);
     return (ActualParam) ((ActualParamSequence) P).lAST;
   }
+  
+  private void SetActualParam (CallExpr f, int nr){
+    int aArgs = GetNrOfActualParams(f);
+    Expr P = f.paramAST;
+    assert(aArgs >= 0);
+    assert (nr <= aArgs);
+    for (int i = 1; i < nr; i++) {
+      assert(P instanceof ActualParamSequence);
+      P = ((ActualParamSequence) P).rAST;
+    }
+    assert (((ActualParamSequence) P).lAST instanceof ActualParam);
+    ((ActualParamSequence) P).lAST = i2f(((ActualParamSequence) P).lAST);
+  }
 
   // Given a type t, this function can be used to print the type.
   // Useful for debuggging, a similar mechanism is used in the
@@ -313,10 +324,8 @@ public class SemanticAnalysis implements Visitor {
     // returned, then the program does not contain a main function.
 
     /* Start of your code: */
-    Decl D = scopeStack.retrieve("main");
-    if(D == null){
+    if(scopeStack.retrieve("main") == null){
       reporter.reportError(errMsg[0], "", progAST.pos);
-      return;
     }
     /* End of your code */
   }
@@ -335,10 +344,8 @@ public class SemanticAnalysis implements Visitor {
     // name is already present in this scope.
 
     /* Start of your code: */
-    boolean temp = scopeStack.enter(x.idAST.Lexeme, x);
-    if(!temp){
-      reporter.reportError(errMsg[2], "", x.idAST.pos);
-      return;
+    if(!scopeStack.enter(x.idAST.Lexeme, x)){
+      reporter.reportError(errMsg[2], "", x.pos);    
     }
     /* End of your code */
 
@@ -348,9 +355,8 @@ public class SemanticAnalysis implements Visitor {
     // x.tAST is of type int.
 
     /* Start of your code: */
-    if((x.idAST.Lexeme.equals("main")) && !(x.tAST.Tequal(StdEnvironment.intType))){
-      reporter.reportError(errMsg[1], "", x.idAST.pos);
-      return;
+    if(x.idAST.Lexeme.equals("main") && !x.tAST.Tequal(StdEnvironment.intType)){
+      reporter.reportError(errMsg[1], "" , x.pos);
     }
     /* End of your code */
 
@@ -390,10 +396,8 @@ public class SemanticAnalysis implements Visitor {
     // Error 2 in that case.
 
     /* Start of your code: */
-    boolean temp = scopeStack.enter(x.astIdent.Lexeme, x);
-    if(!temp){
-      reporter.reportError(errMsg[2], "", x.astIdent.pos);
-      return;
+    if(!scopeStack.enter(x.astIdent.Lexeme, x)){
+      reporter.reportError(errMsg[2], "", x.pos);
     }
     /* End of your code */
 
@@ -402,9 +406,15 @@ public class SemanticAnalysis implements Visitor {
     // Report error messages 3 and 4 respectively:
 
     /* Start of your code: */
-    if(x.astType.Tequal(StdEnvironment.voidType)){
-      reporter.reportError(errMsg[3], "", x.astIdent.pos);
-      return;
+    if(x.astType instanceof ArrayType){
+      if (((ArrayType) x.astType).astType.Tequal(StdEnvironment.voidType)){
+        reporter.reportError(errMsg[4], "", x.pos);
+      }
+    }
+    else{
+      if(x.astType.Tequal(StdEnvironment.voidType)){
+        reporter.reportError(errMsg[3], "", x.pos);
+      }
     }
     /* End of your code */
   }
@@ -442,24 +452,19 @@ public class SemanticAnalysis implements Visitor {
     // If conditions (1) or (2) are violated, then you should report Error 6.
 
     /* Start of your code: */
-    if(x.rAST.type.AssignableTo(x.lAST.type)) {
-      //check for type coercion:
-      if(x.lAST.type.Tequal(StdEnvironment.floatType) &&
-          x.rAST.type.Tequal(StdEnvironment.intType)) {
-        //coercion of right operand to int:
-        x.rAST = i2f(x.rAST);
+    if(x.rAST.type.AssignableTo(x.lAST.type)){
+      if(x.lAST.type.Tequal(StdEnvironment.floatType) && 
+        x.rAST.type.Tequal(StdEnvironment.intType)){
+          x.rAST = i2f(x.rAST);
       }
-      
-      
-    } else {
-      reporter.reportError(errMsg[6], "", x.rAST.pos);
-      return;
+    }
+    else{
+      reporter.reportError(errMsg[6], "", x.pos);
     }
     /* End of your code */
 
     if(!(x.lAST instanceof VarExpr) && !(x.lAST instanceof ArrayExpr)) {
       reporter.reportError(errMsg[7], "", x.lAST.pos);
-      return;
     }
   }
 
@@ -471,9 +476,8 @@ public class SemanticAnalysis implements Visitor {
     // look at "for" loops, which use a similar check for the loop condition.
 
     /* Start of your code: */
-    if(!x.eAST.type.Tequal(StdEnvironment.boolType) && !x.eAST.type.Tequal(StdEnvironment.intType)){
+    if(!x.eAST.type.Tequal(StdEnvironment.boolType)){
       reporter.reportError(errMsg[20], "", x.eAST.pos);
-      return;
     }
     /* End of your code */
     x.thenAST.accept(this);
@@ -492,7 +496,6 @@ public class SemanticAnalysis implements Visitor {
     /* Start of your code: */
     if(!x.eAST.type.Tequal(StdEnvironment.boolType)){
       reporter.reportError(errMsg[22], "", x.eAST.pos);
-      return;
     }
     /* End of your code */
     x.stmtAST.accept(this);
@@ -503,9 +506,8 @@ public class SemanticAnalysis implements Visitor {
     if(!(x.e2AST instanceof EmptyExpr)) {
       x.e2AST.accept(this);
       if(!x.e2AST.type.Tequal(StdEnvironment.boolType)) {
-      reporter.reportError(errMsg[21], "", x.e2AST.pos);
-      return;
-    }
+        reporter.reportError(errMsg[21], "", x.e2AST.pos);
+      }
     }
     if(!(x.e3AST instanceof EmptyExpr)) {
       x.e3AST.accept(this);
@@ -519,12 +521,11 @@ public class SemanticAnalysis implements Visitor {
     // statement's expression with the return type of the function.
     // Uncomment this code
     // as soon as you have finished type-checking of expressions.
-    /* START: */
+    // /* START:
     if (x.eAST instanceof EmptyExpr) {
       // ``return;'' requires void function return type:
       if (!currentFunctionReturnType.Tequal(StdEnvironment.voidType)) {
         reporter.reportError(errMsg[8], "", x.eAST.pos);
-        return;
       }
       return; // done -> early exit
     }
@@ -543,9 +544,8 @@ public class SemanticAnalysis implements Visitor {
       }
     } else {
       reporter.reportError(errMsg[8], "", x.eAST.pos);
-      return;
     }
-    /* END */
+    // END */
   }
 
   public void visit(CompoundStmt x) {
@@ -575,7 +575,6 @@ public class SemanticAnalysis implements Visitor {
     /* Start of your code: */
     x.astDecl.accept(this);
     x.astStmt.accept(this);
-
     /* End of your code */
 
     // STEP 1:
@@ -597,7 +596,9 @@ public class SemanticAnalysis implements Visitor {
     // a function.
 
     /* Start of your code: */
-    scopeStack.closeScope();
+    if(IsFunctionBlock){
+      scopeStack.closeScope();
+    }
     /* End of your code */
   }
 
@@ -619,46 +620,7 @@ public class SemanticAnalysis implements Visitor {
         // Perform i2f coercion if necessary.
 
         /* Start of your code: */
-        if(!(x.eAST instanceof ExprSequence)){
-          SourcePos temp_pos = new SourcePos();
-          temp_pos.StartCol = x.tAST.pos.StartCol;
-          temp_pos.StartLine = x.tAST.pos.StartLine;
-          temp_pos.EndLine = x.eAST.pos.EndLine;
-          temp_pos.EndCol = x.eAST.pos.EndCol;
-          reporter.reportError(errMsg[15], "", temp_pos);
-        }
-        else{
-          ExprSequence temp_Expr_Seq = ((ExprSequence)x.eAST);
-          do{
-            if(temp_Expr_Seq.lAST.type.AssignableTo(((ArrayType)x.tAST).astType)) {
-              //check for type coercion:
-              if((((ArrayType)x.tAST).astType).Tequal(StdEnvironment.floatType) &&
-                (temp_Expr_Seq.lAST.type.Tequal(StdEnvironment.intType))) {
-                //coercion of right operand to int:
-                temp_Expr_Seq.lAST = i2f(temp_Expr_Seq.lAST);
-              }
-            } else {
-              reporter.reportError(errMsg[13], "", temp_Expr_Seq.lAST.pos);
-              return;
-            }
-            if(!((Expr)temp_Expr_Seq.rAST instanceof EmptyExpr)){
-              temp_Expr_Seq = (ExprSequence)temp_Expr_Seq.rAST;
-            }
-            else{
-              break;
-            }
-            
-            arrayLenght ++;
-          }while(!((Expr)temp_Expr_Seq instanceof EmptyExpr));
-          if(arrayLenght != ((ArrayType)x.tAST).GetRange()){
-            SourcePos temp_pos = new SourcePos();
-            temp_pos.StartCol = x.tAST.pos.StartCol;
-            temp_pos.StartLine = x.tAST.pos.StartLine;
-            temp_pos.EndLine = x.eAST.pos.EndLine;
-            temp_pos.EndCol = x.eAST.pos.EndCol+1;
-            reporter.reportError(errMsg[16], "", temp_pos);
-          }
-        }
+
         /* End of your code */
       } else {
         //STEP 4:
@@ -668,19 +630,7 @@ public class SemanticAnalysis implements Visitor {
         // Perform i2f coercion if necessary.
 
         /* Start of your code: */
-        if(x.eAST instanceof ExprSequence){
-          SourcePos temp_pos = new SourcePos();
-          temp_pos.StartCol = x.tAST.pos.StartCol;
-          temp_pos.StartLine = x.tAST.pos.StartLine;
-          temp_pos.EndLine = x.eAST.pos.EndLine;
-          temp_pos.EndCol = x.eAST.pos.EndCol;
-          reporter.reportError(errMsg[14], "", temp_pos);
-          return;
-        }
-        else if(!x.eAST.type.AssignableTo(x.tAST)) {
-          reporter.reportError(errMsg[6], "", x.eAST.pos);
-          return;
-        }
+
         /* End of your code */
       }
     }
@@ -691,10 +641,8 @@ public class SemanticAnalysis implements Visitor {
     // report Error 2.
 
     /* Start of your code: */
-    boolean temp = scopeStack.enter(x.idAST.Lexeme, x);
-    if(!temp){
-      reporter.reportError(errMsg[2], "", x.idAST.pos);
-      return;
+    if(!scopeStack.enter(x.idAST.Lexeme, x)){
+      reporter.reportError(errMsg[2], "", x.pos);
     }
     /* End of your code */
 
@@ -703,14 +651,15 @@ public class SemanticAnalysis implements Visitor {
     // Report error messages 3 and 4 respectively:
 
     /* Start of your code: */
-    if(x.tAST.Tequal(StdEnvironment.voidType)){
-      SourcePos temp_pos = new SourcePos();
-      temp_pos.StartCol = x.tAST.pos.StartCol;
-      temp_pos.StartLine = x.tAST.pos.StartLine;
-      temp_pos.EndLine = x.idAST.pos.EndLine;
-      temp_pos.EndCol = x.idAST.pos.EndCol;
-      reporter.reportError(errMsg[3], "", temp_pos);
-      return;
+    if(x.tAST instanceof ArrayType){
+      if(((ArrayType)x.tAST).astType.Tequal(StdEnvironment.voidType)){
+        reporter.reportError(errMsg[4], "" , x.pos);
+      }
+    }
+    else{
+      if(x.tAST.Tequal(StdEnvironment.voidType)){
+        reporter.reportError(errMsg[3], "", x.pos);
+      }
     }
     /* End of your code */
   }
@@ -730,10 +679,8 @@ public class SemanticAnalysis implements Visitor {
     // Error 11 and set x.type to the error type from StdEnvironment.
     x.type = typeOfDecl (x.Ident.declAST);
     /* Start of your code: */
-    if((x.Ident.declAST instanceof FunDecl)) {
-      x.type = StdEnvironment.errorType;
-      reporter.reportError(errMsg[11], "", x.Ident.declAST.pos);
-      return;
+    if(x.Ident.declAST instanceof FunDecl){
+      reporter.reportError(errMsg[11], "", x.pos);
     }
     /* End of your code */
   }
@@ -750,11 +697,9 @@ public class SemanticAnalysis implements Visitor {
       }
     } else {
       reporter.reportError(errMsg[6], "", x.rAST.pos);
-      return;
     }
     if(!(x.lAST instanceof VarExpr) && !(x.lAST instanceof ArrayExpr)) {
       reporter.reportError(errMsg[7], "", x.lAST.pos);
-      return;
     }
   }
 
@@ -765,7 +710,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.intType).
 
     /* Start of your code: */
-      x.type = StdEnvironment.intType;
+    x.type = StdEnvironment.intType;
     /* End of your code */
   }
 
@@ -774,8 +719,9 @@ public class SemanticAnalysis implements Visitor {
     // Here we are visiting a float literal. Set x.type of this
     // AST node to the float type from the standard environment
     // (StdEnvironment.floatType).
+
     /* Start of your code: */
-      x.type = StdEnvironment.floatType;
+    x.type = StdEnvironment.floatType;
     /* End of your code */
   }
 
@@ -786,7 +732,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.boolType).
 
     /* Start of your code: */
-      x.type = StdEnvironment.boolType;
+    x.type = StdEnvironment.boolType;
     /* End of your code */
   }
 
@@ -806,13 +752,11 @@ public class SemanticAnalysis implements Visitor {
     x.indexAST.accept(this);
     if(!x.indexAST.type.Tequal(StdEnvironment.intType)) {
       reporter.reportError(errMsg[17], "", x.indexAST.pos);
-      return;
     }
     VarExpr VE = (VarExpr)x.idAST;
     if(!(typeOfDecl(VE.Ident.declAST) instanceof ArrayType)) {
-      x.type = StdEnvironment.errorType; 
       reporter.reportError(errMsg[12], "", x.pos);
-      return;
+      x.type = StdEnvironment.errorType; 
     } else {
       x.type = typeOfArrayType(x.idAST.type);
     }
@@ -864,9 +808,10 @@ public class SemanticAnalysis implements Visitor {
         /* Start of your code: */
         x.rAST = i2f(x.rAST);
         x.oAST.type = StdEnvironment.floatType;
-        if(HasBoolReturnType(x.oAST)) {
+        if(HasBoolReturnType(x.oAST)){
           x.type = StdEnvironment.boolType;
-        } else {
+        }
+        else{
           x.type = StdEnvironment.floatType;
         }
         /* End of your code */
@@ -887,7 +832,6 @@ public class SemanticAnalysis implements Visitor {
     {
       // Error not spurious, because AST children are ok.
       reporter.reportError(errMsg[9], "", x.pos);
-      return;
     }
   }
 
@@ -915,13 +859,11 @@ public class SemanticAnalysis implements Visitor {
     // slightly more complicated case.
 
     /* Start of your code: */
-
-    // if(HasIntOrFloatArgs(x.oAST))
-    if((x.eAST.type.Tequal(StdEnvironment.intType) || x.eAST.type.Tequal(StdEnvironment.floatType)) && (HasIntOrFloatArgs(x.oAST))){
+    if((x.eAST.type.Tequal(StdEnvironment.intType) || x.eAST.type.Tequal(StdEnvironment.floatType)) && HasIntOrFloatArgs(x.oAST)){
       x.oAST.type = x.eAST.type;
       x.type = x.eAST.type;
     }
-    else if(x.eAST.type.Tequal(StdEnvironment.boolType) && (HasBoolReturnType(x.oAST))){
+    else if(x.eAST.type.Tequal(StdEnvironment.boolType) && HasBoolArgs(x.oAST)){
       x.type = StdEnvironment.boolType;
       x.oAST.type = StdEnvironment.intType;
     }
@@ -929,7 +871,6 @@ public class SemanticAnalysis implements Visitor {
       x.oAST.type = StdEnvironment.errorType;
       x.type = StdEnvironment.errorType;
       reporter.reportError(errMsg[10], "", x.pos);
-      return;
     }
     /* End of your code */
   }
@@ -965,10 +906,9 @@ public class SemanticAnalysis implements Visitor {
     // where f is not a function. 
 
     /* Start of your code: */
-    if (!(D instanceof FunDecl))
-    {
-      // Error not spurious, because AST children are ok.
+    if(!(D instanceof FunDecl)){
       reporter.reportError(errMsg[19], "", x.pos);
+      return;
     }
     /* End of your code */
     FunDecl F = (FunDecl ) D;
@@ -980,15 +920,11 @@ public class SemanticAnalysis implements Visitor {
     // the number of formal and actual parameters.
 
     /* Start of your code: */
-    int formalParams = GetNrOfFormalParams(F);
-    int actualParams = GetNrOfActualParams(x);
-    if(formalParams > actualParams){
-      reporter.reportError(errMsg[24], "", x.pos);
-      return;
-    } 
-    else if(formalParams < actualParams){
+    if(GetNrOfActualParams(x) > GetNrOfFormalParams(F)){
       reporter.reportError(errMsg[23], "", x.pos);
-      return;
+    }
+    else if(GetNrOfActualParams(x) < GetNrOfFormalParams(F)){
+      reporter.reportError(errMsg[24], "", x.pos);
     }
     /* End of your code */
 
@@ -1008,46 +944,32 @@ public class SemanticAnalysis implements Visitor {
     // Perform type coercion (int->float) of the *actual* parameter if necessary.
     //
 
-    /* You can use the following code as part of your solution. Uncomment
-     * the following code as soon as you have type-checking
-     * of expressions working. Uncomment the matching closing parenthesis
-     * of the "for" loop also.
+    // /* You can use the following code as part of your solution. Uncomment
+    //  * the following code as soon as you have type-checking
+    //  * of expressions working. Uncomment the matching closing parenthesis
+    //  * of the "for" loop also.
 
-     * Start of your code: */
+    //  * Start of your code:
 
      int NrFormalParams = GetNrOfFormalParams(F);
      for (int i = 1; i<= NrFormalParams; i++) {
-      FormalParamDecl Form = GetFormalParam(F, i);
-      ActualParam Act = GetActualParam(x, i);
-      Type FormalT = Form.astType;
-      Type ActualT = Act.pAST.type;
-      if(!FormalT.equals(ActualT)){
-        // PrintClassName(ActualT);
-        // if(FormalT.Tequal(StdEnvironment.floatType) && ActualT.Tequal(StdEnvironment.intType)){
-        //   x.paramAST = i2f(x.paramAST);
-        // }
-        // else{
-        //   reporter.reportError(errMsg[25], "", x.pos);
-          
-        // }
-        if(ActualT.AssignableTo(FormalT)) {
-          //check for type coercion:
-          if(FormalT.Tequal(StdEnvironment.floatType) &&
-              ActualT.Tequal(StdEnvironment.intType)) {
-            //coercion of right operand to int:
-            x.paramAST = i2f(x.paramAST);
+     FormalParamDecl Form = GetFormalParam(F, i);
+     ActualParam Act = GetActualParam(x, i);
+     Type FormalT = Form.astType;
+     Type ActualT = Act.pAST.type;
+     if(ActualT.AssignableTo(FormalT)){
+       if(FormalT.Tequal(StdEnvironment.floatType) &&
+          ActualT.Tequal(StdEnvironment.intType)){
+            SetActualParam(x, i); //i2f i'th actual param of x
           }
-        } else {
-          reporter.reportError(errMsg[25], "", x.pos);
-          return;
-        }
-        
-      }
-
+     }
+     else{
+       reporter.reportError(errMsg[25], "", Act.pos);
+     }
 
 
     }
-    /* End of your code */
+    // /* End of your code */
 
     // If we fall through here, no semantic error occurred -> set the 
     // return type of the call expression to the return type of
@@ -1070,9 +992,8 @@ public class SemanticAnalysis implements Visitor {
       x.declAST = binding;
     }
     /* Start of your code: */
-    else{
+    if(scopeStack.retrieve(x.Lexeme) == null){
       reporter.reportError(errMsg[5], "", x.pos);
-      return;
     }
     /* End of your code */
   }
@@ -1118,9 +1039,11 @@ public class SemanticAnalysis implements Visitor {
   }
 
   public void visit(ArrayType x) {
+
   }
 
   public void visit(ErrorType x) {
+
   }
 
 }

@@ -611,31 +611,61 @@ public class Emitter implements Visitor {
       emit(JVM.IF_ICMPEQ + " " + getLabelString(L1));
     }
     else if(    "!=".equals(Op)    ){
-      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
       emit(JVM.IF_ICMPNE + " " + getLabelString(L1));
     }
-    emitICONST(0);
-    emit(JVM.GOTO + " " + getLabelString(L2));
-    emitLabel(L1);
-    emitICONST(1);
+    // if((x.eAST) instanceof BinaryExpr){
+    //   if(((BinaryExpr)(x.eAST)).lAST instanceof BoolExpr){
+    //     if(   !(((BoolExpr)((BinaryExpr)(x.eAST)).lAST).astBL  instanceof BoolLiteral) ){
+    //       // if(((BoolExpr)((BinaryExpr)(x.eAST)).lAST).astBL.Lexeme.equals("true")){
+    //         // System.out.println("SDASDASDSADSADASD");
+    //         emitICONST(0);
+    //         emit(JVM.GOTO + " " + getLabelString(L2));
+    //         emitLabel(L1);
+    //         emitICONST(1);
 
-    emitLabel(L2);
-    int L3 = frame.getNewLabel();
-    int L4 = frame.getNewLabel();
-    emit(JVM.IFEQ + " " + getLabelString(L3));
-    System.out.println("asdadasdasdadasdasdasdadaasd");
-    if(x.thenAST != null){
+    //         emitLabel(L2);
+    //         int L3 = frame.getNewLabel();
+    //         int L4 = frame.getNewLabel();
+    //         emit(JVM.IFEQ + " " + getLabelString(L3));
+    //         if(x.thenAST != null){
+    //           x.thenAST.accept(this);
+    //         }
+    //         emit(JVM.GOTO + " " + getLabelString(L4));
+            
+    //         //TBD: your code goes here...
+    //         if(x.elseAST != null) {
+    //           // int L3 = frame.getNewLabel();
+    //           emitLabel(L3);
+    //           x.elseAST.accept(this);
+    //         }
+    //         emitLabel(L4);
+    //         // return;
+    //       // }
+    //     }
+    //   }
+    // }
+    int L3 = -1;
+    int L4 = -1;
+    if(x.thenAST != null && !(x.thenAST instanceof EmptyCompoundStmt)){
+      emitICONST(0);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(1);
+      emitLabel(L2);
+      L3 = frame.getNewLabel();
+      L4 = frame.getNewLabel();
+      emit(JVM.IFEQ + " " + getLabelString(L3));
       x.thenAST.accept(this);
+      emit(JVM.GOTO + " " + getLabelString(L4));
     }
-    emit(JVM.GOTO + " " + getLabelString(L4));
     
     //TBD: your code goes here...
     if(x.elseAST != null) {
       // int L3 = frame.getNewLabel();
       emitLabel(L3);
       x.elseAST.accept(this);
+      emitLabel(L4);
     }
-    emitLabel(L4);
     
     
     //TBD: your code goes here...
@@ -670,7 +700,6 @@ public class Emitter implements Visitor {
       emit(JVM.IF_ICMPEQ + " " + getLabelString(L3));
     }
     else if(    "!=".equals(Op)    ){
-      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
       emit(JVM.IF_ICMPNE + " " + getLabelString(L3));
     }
     emitICONST(0);
@@ -725,7 +754,6 @@ public class Emitter implements Visitor {
       emit(JVM.IF_ICMPEQ + " " + getLabelString(L3));
     }
     else if(    "!=".equals(Op)    ){
-      System.out.println("zxxxxxxxxxxxxxxxxxxxxxxxx");
       emit(JVM.IF_ICMPNE + " " + getLabelString(L3));
     }
     emitICONST(0);
@@ -895,37 +923,59 @@ public class Emitter implements Visitor {
   public void visit(BinaryExpr x) {
     //emit("; BinaryExpr");
     String Op = new String(x.oAST.Lexeme);
+    
     if(Op.equals("&&")) {
       int L1 = frame.getNewLabel();
       int L2 = frame.getNewLabel();
+      int L3 = frame.getNewLabel();
+      int L4 = frame.getNewLabel();
       //TBD: implement the code template for && short circuit evaluation
       //     from the lecture slides.
       x.lAST.accept(this);
-      if(x.lAST instanceof BoolExpr){
-        if(((BoolExpr)(x.lAST)).astBL.Lexeme.equals("false")){
-          return;
-        }
-        else{
-          x.rAST.accept(this);
-        }
-      }
+      emit(JVM.IFEQ + " " + getLabelString(L1));
+      x.rAST.accept(this);
+      emit(JVM.IFEQ + " " + getLabelString(L1));
+      emitICONST(1);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(0);
+      emitLabel(L2);
+      emit(JVM.IFEQ + " " + getLabelString(L3));
+      emit(JVM.GOTO + " " + getLabelString(L4));
+      emitLabel(L3);
+      emitLabel(L4);
+      return;
     }
     if(Op.equals("||")) {
       //TBD: implement || short circuit evaluation.
       //     Similar to &&, you may use a Java example to figure it out..
+      
+      
       int L1 = frame.getNewLabel();
       int L2 = frame.getNewLabel();
+      int L3 = frame.getNewLabel();  
+      int L4 = frame.getNewLabel();  
+      
+      
       //TBD: implement the code template for && short circuit evaluation
       //     from the lecture slides.
+      
       x.lAST.accept(this);
-      if(x.lAST instanceof BoolExpr){
-        if(((BoolExpr)(x.lAST)).astBL.Lexeme.equals("true")){
-          return;
-        }
-        else{
-          x.rAST.accept(this);
-        }
-      }
+      emit(JVM.IFNE + " " + getLabelString(L1));
+      x.rAST.accept(this);
+      emit(JVM.IFNE + " " + getLabelString(L1));
+      emitICONST(0);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(1);
+      emitLabel(L2);
+      emit(JVM.IFEQ + " " + getLabelString(L3));
+      emit(JVM.GOTO + " " + getLabelString(L4));
+      emitLabel(L3);
+      emitLabel(L4);
+      //TBD: implement the code template for && short circuit evaluation
+      //     from the lecture slides.
+      return;
     }
     /*
      * Here we treat +, -, *, / >, >=, <, <=, ==, !=
@@ -933,6 +983,11 @@ public class Emitter implements Visitor {
      * similar, you can check how the javac compiler does it.
      */
     x.lAST.accept(this);
+
+    // System.out.println("SDSDSDSDDSDSD");
+    // emitLabel(L2);
+    // emit(JVM.IFEQ + " " + getLabelString(L2));
+    
     x.rAST.accept(this);
     // TBD:
     if(Op.equals("+") && (x.oAST.type.Tequal(StdEnvironment.intType))){
@@ -959,6 +1014,7 @@ public class Emitter implements Visitor {
     else if(Op.equals("/") && (x.oAST.type.Tequal(StdEnvironment.floatType))){
       emit(JVM.FDIV);
     }
+    
     
     
   }
@@ -1047,7 +1103,6 @@ public class Emitter implements Visitor {
     //emit("; IntLiteral: " + x.Lexeme + "\n");
     //TBD: here you have to emit an ICONST instruction to load the integer literal
     //     onto the JVM stack. (see emitICONST).
-    System.out.println("sdadasdasdsadasdsa");
     emitICONST(Integer.valueOf(x.Lexeme));
   } 
 
@@ -1061,9 +1116,8 @@ public class Emitter implements Visitor {
   public void visit(BoolLiteral x) {
     //emit("; BoolLiteral: " + x.Lexeme + "\n");
     //TBD: and bool...
-    System.out.println("nnnnnnnnnnnnnnnnnn");
     emitBCONST(Boolean.parseBoolean(x.Lexeme));
-
+    System.out.println("////////////////////");
   } 
 
   public void visit(StringLiteral x) {

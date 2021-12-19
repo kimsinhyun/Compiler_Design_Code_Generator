@@ -10,9 +10,9 @@ bool ff() {
 
 int main()
 {
-  if (false && f()){ return 1;}
+  if (false && f()){}
 
-  if (true || ff()){return 1;}
+  if (true || ff()){}
 
 }
 

@@ -59,30 +59,38 @@
    astore_1
    ; IfStmt, line 13
    iconst_0
+   ifeq Label2
+   ; CallExpr
+   ; "this"-pointer is the first ActualParam with instance methods:
+   aload_1
+   invokevirtual Shortcircuit/f()Z
+   ifeq Label2
+   iconst_1
+   goto Label3
+  Label2:
    iconst_0
+  Label3:
+   ifeq Label4
    goto Label5
   Label4:
-   iconst_1
   Label5:
-   ifeq Label6
-   ; ReturnStmt, line 13
-   iconst_1
-   return
-   goto Label7
-  Label7:
    ; IfStmt, line 15
    iconst_1
+   ifne Label8
+   ; CallExpr
+   ; "this"-pointer is the first ActualParam with instance methods:
+   aload_1
+   invokevirtual Shortcircuit/ff()Z
+   ifne Label8
    iconst_0
+   goto Label9
+  Label8:
+   iconst_1
+  Label9:
+   ifeq Label10
    goto Label11
   Label10:
-   iconst_1
   Label11:
-   ifeq Label12
-   ; ReturnStmt, line 15
-   iconst_1
-   return
-   goto Label13
-  Label13:
   Label1:
    return
    .limit locals 2

@@ -1,5 +1,5 @@
 Codge Generation Test Report
-generated Sat Dec 18 23:32:16 KST 2021
+generated Sun Dec 19 16:13:33 KST 2021
 Assignment succeded
 Coercion succeded
 euclid succeded
@@ -10,4 +10,4 @@ HelloWorld succeded
 If succeded
 Intliteral succeded
 Literals succeded
-Shortcircuit failed
+Shortcircuit succeded
